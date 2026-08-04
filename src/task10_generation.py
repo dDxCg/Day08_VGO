@@ -13,12 +13,15 @@ https://openrouter.ai/models?max_price=0 — phù hợp nếu chưa có credit t
 Base URL: "https://openrouter.ai/api/v1", dùng chung interface với OpenAI SDK.
 """
 
+import logging
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 from .task9_retrieval_pipeline import retrieve
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -37,8 +40,7 @@ TOP_P = 0.9
 # Chọn 0.3 vì: RAG cần factual, ít sáng tạo
 TEMPERATURE = 0.3
 
-# TODO: Chọn LLM model (OpenRouter model ID)
-LLM_MODEL = "openai/gpt-4o-mini"  # hoặc model ":free" nếu chưa có credit
+LLM_MODEL = os.getenv("CHAT_MODEL", "openai/gpt-4o-mini")
 
 
 # =============================================================================
@@ -77,15 +79,12 @@ def reorder_for_llm(chunks: list[dict]) -> list[dict]:
     Returns:
         List reordered để maximize LLM attention.
     """
-    # TODO: Implement reordering
-    #
-    # if len(chunks) <= 2:
-    #     return chunks
-    #
-    # front = chunks[::2]   # index 0, 2, 4 -> đặt ở đầu
-    # back = chunks[1::2]   # index 1, 3    -> đặt ở cuối (reversed)
-    # return front + back[::-1]
-    raise NotImplementedError("Implement reorder_for_llm")
+    if len(chunks) <= 2:
+        return chunks
+
+    front = chunks[::2]   # index 0, 2, 4 -> đặt ở đầu
+    back = chunks[1::2]   # index 1, 3    -> đặt ở cuối (reversed)
+    return front + back[::-1]
 
 
 # =============================================================================
@@ -103,25 +102,76 @@ def format_context(chunks: list[dict]) -> str:
     Returns:
         Formatted context string.
     """
-    # TODO: Implement context formatting
-    #
-    # context_parts = []
-    # for i, chunk in enumerate(chunks, 1):
-    #     source = chunk.get("metadata", {}).get("source", f"Source {i}")
-    #     doc_type = chunk.get("metadata", {}).get("type", "unknown")
-    #     context_parts.append(
-    #         f"[Document {i} | Source: {source} | Type: {doc_type}]\n"
-    #         f"{chunk['content']}\n"
-    #     )
-    # return "\n---\n".join(context_parts)
-    raise NotImplementedError("Implement format_context")
+    context_parts = []
+    for i, chunk in enumerate(chunks, 1):
+        source = chunk.get("metadata", {}).get("source", f"Source {i}")
+        doc_type = chunk.get("metadata", {}).get("type", "unknown")
+        context_parts.append(
+            f"[Document {i} | Source: {source} | Type: {doc_type}]\n"
+            f"{chunk['content']}\n"
+        )
+    return "\n---\n".join(context_parts)
 
 
 # =============================================================================
 # GENERATION
 # =============================================================================
 
-def generate_with_citation(query: str, top_k: int = TOP_K) -> dict:
+def _retrieve_and_build_prompt(
+    query: str,
+    top_k: int,
+    retrieval_mode: str,
+    use_reranking: bool,
+    rerank_method: str,
+) -> tuple[list[dict], str]:
+    """Step 1-4 dùng chung cho cả generate_with_citation và bản streaming."""
+    logger.info(
+        "generate_with_citation() start | query=%r top_k=%d retrieval_mode=%s use_reranking=%s rerank_method=%s",
+        query, top_k, retrieval_mode, use_reranking, rerank_method,
+    )
+
+    # Step 1: Retrieve
+    chunks = retrieve(
+        query,
+        top_k=top_k,
+        use_reranking=use_reranking,
+        retrieval_mode=retrieval_mode,
+        rerank_method=rerank_method,
+    )
+    logger.info("retrieve() -> %d chunks", len(chunks))
+
+    if not chunks:
+        logger.warning("No chunks retrieved -> returning cannot-verify answer")
+        return chunks, ""
+
+    # Step 2: Reorder
+    reordered = reorder_for_llm(chunks)
+    logger.info("reorder_for_llm() -> %d chunks reordered (lost-in-the-middle mitigation)", len(reordered))
+
+    # Step 3: Format context
+    context = format_context(reordered)
+    logger.info("format_context() -> %d chars", len(context))
+
+    # Step 4: Build prompt
+    user_message = f"""Context:\n{context}\n\n---\n\nQuestion: {query}"""
+    logger.debug("Prompt built | system=%d chars user=%d chars", len(SYSTEM_PROMPT), len(user_message))
+
+    return chunks, user_message
+
+
+def _get_openai_client():
+    from openai import OpenAI
+    api_key = os.getenv("OPEN_ROUTER_API") or os.getenv("OPENAI_API_KEY")
+    return OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
+
+
+def generate_with_citation(
+    query: str,
+    top_k: int = TOP_K,
+    retrieval_mode: str = "hybrid",  # "dense" | "hybrid" — A/B testing
+    use_reranking: bool = True,      # rerank on/off — A/B testing
+    rerank_method: str = "cross_encoder",  # "cross_encoder" | "mmr" — A/B testing
+) -> dict:
     """
     End-to-end RAG generation có citation.
 
@@ -135,52 +185,116 @@ def generate_with_citation(query: str, top_k: int = TOP_K) -> dict:
 
     Args:
         query: Câu hỏi của user
+        top_k: Số chunks đưa vào context
+        retrieval_mode: "dense" (chỉ semantic) hoặc "hybrid" (semantic + lexical + RRF)
+        use_reranking: Có rerank hay không (A/B: rerank vs no-rerank)
+        rerank_method: "cross_encoder" hoặc "mmr" (A/B giữa các reranking strategy)
 
     Returns:
         {
             'answer': str,           # Câu trả lời có citation
             'sources': list[dict],   # Các chunks đã dùng
-            'retrieval_source': str  # 'hybrid' hoặc 'pageindex'
+            'retrieval_source': str  # 'dense', 'hybrid' hoặc 'pageindex'
         }
     """
-    # TODO: Implement generation pipeline
-    #
-    # # Step 1: Retrieve
-    # chunks = retrieve(query, top_k=top_k)
-    #
-    # # Step 2: Reorder
-    # reordered = reorder_for_llm(chunks)
-    #
-    # # Step 3: Format context
-    # context = format_context(reordered)
-    #
-    # # Step 4: Build prompt
-    # user_message = f"""Context:\n{context}\n\n---\n\nQuestion: {query}"""
-    #
-    # # Step 5: Call LLM (OpenRouter — OpenAI-compatible API)
-    # from openai import OpenAI
-    # api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
-    # client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
-    #
-    # response = client.chat.completions.create(
-    #     model=LLM_MODEL,
-    #     messages=[
-    #         {"role": "system", "content": SYSTEM_PROMPT},
-    #         {"role": "user", "content": user_message}
-    #     ],
-    #     temperature=TEMPERATURE,
-    #     top_p=TOP_P,
-    # )
-    #
-    # answer = response.choices[0].message.content
-    #
-    # # Step 6: Return
-    # return {
-    #     "answer": answer,
-    #     "sources": chunks,
-    #     "retrieval_source": chunks[0].get("source", "hybrid") if chunks else "none"
-    # }
-    raise NotImplementedError("Implement generate_with_citation")
+    chunks, user_message = _retrieve_and_build_prompt(
+        query, top_k, retrieval_mode, use_reranking, rerank_method
+    )
+
+    if not chunks:
+        return {
+            "answer": "Tôi không thể xác minh thông tin này từ nguồn hiện có",
+            "sources": [],
+            "retrieval_source": "none",
+        }
+
+    # Step 5: Call LLM (OpenRouter — OpenAI-compatible API)
+    client = _get_openai_client()
+
+    logger.info("Calling LLM model=%s temperature=%.2f top_p=%.2f", LLM_MODEL, TEMPERATURE, TOP_P)
+    response = client.chat.completions.create(
+        model=LLM_MODEL,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_message}
+        ],
+        temperature=TEMPERATURE,
+        top_p=TOP_P,
+    )
+
+    answer = response.choices[0].message.content
+    logger.info("LLM response received -> %d chars", len(answer or ""))
+
+    # Step 6: Return
+    retrieval_source = chunks[0].get("source", "hybrid") if chunks else "none"
+    logger.info("generate_with_citation() done | retrieval_source=%s sources=%d", retrieval_source, len(chunks))
+    return {
+        "answer": answer,
+        "sources": chunks,
+        "retrieval_source": retrieval_source,
+    }
+
+
+def generate_with_citation_stream(
+    query: str,
+    top_k: int = TOP_K,
+    retrieval_mode: str = "hybrid",
+    use_reranking: bool = True,
+    rerank_method: str = "cross_encoder",
+):
+    """
+    Bản streaming của generate_with_citation() — yield từng phần trả lời khi LLM sinh ra.
+
+    Retrieval (Step 1-4) vẫn chạy đồng bộ như bình thường (không stream được, cần
+    xong hết context mới gọi LLM). Chỉ Step 5 (LLM call) stream token-by-token.
+
+    Yields:
+        {'type': 'delta', 'content': str} — mỗi lần model sinh thêm text
+        {'type': 'done', 'sources': list[dict], 'retrieval_source': str, 'answer': str}
+            — event cuối cùng, chứa full answer + metadata
+    """
+    chunks, user_message = _retrieve_and_build_prompt(
+        query, top_k, retrieval_mode, use_reranking, rerank_method
+    )
+
+    if not chunks:
+        answer = "Tôi không thể xác minh thông tin này từ nguồn hiện có"
+        yield {"type": "delta", "content": answer}
+        yield {"type": "done", "sources": [], "retrieval_source": "none", "answer": answer}
+        return
+
+    client = _get_openai_client()
+
+    logger.info("Calling LLM (stream) model=%s temperature=%.2f top_p=%.2f", LLM_MODEL, TEMPERATURE, TOP_P)
+    stream = client.chat.completions.create(
+        model=LLM_MODEL,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_message}
+        ],
+        temperature=TEMPERATURE,
+        top_p=TOP_P,
+        stream=True,
+    )
+
+    answer_parts = []
+    for event in stream:
+        delta = event.choices[0].delta.content if event.choices else None
+        if delta:
+            answer_parts.append(delta)
+            yield {"type": "delta", "content": delta}
+
+    answer = "".join(answer_parts)
+    logger.info("LLM stream done -> %d chars", len(answer))
+
+    retrieval_source = chunks[0].get("source", "hybrid") if chunks else "none"
+    logger.info("generate_with_citation_stream() done | retrieval_source=%s sources=%d", retrieval_source, len(chunks))
+    yield {
+        "type": "done",
+        "sources": chunks,
+        "retrieval_source": retrieval_source,
+        "answer": answer,
+    }
 
 
 if __name__ == "__main__":
