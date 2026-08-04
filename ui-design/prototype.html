@@ -130,47 +130,11 @@
     }
     .skip-link:focus { transform: translateY(0); }
 
-    /* Prototype controls: explicitly outside the production UI. */
-    .prototype-bar {
-      height: auto;
-      min-height: 52px;
-      padding: 9px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      border-bottom: 1px dashed #A16207;
-      background: #FFFBEB;
-      color: #713F12;
-    }
-    .prototype-label {
-      padding: 3px 9px;
-      border: 1px solid #A16207;
-      border-radius: var(--r-pill);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-    .prototype-note { font-size: 12px; font-weight: 600; }
-    .state-switcher { display: flex; flex-wrap: wrap; gap: 5px; margin-left: auto; }
-    .state-switcher button {
-      min-height: 32px;
-      padding: 5px 10px;
-      border: 1px solid #D6B874;
-      border-radius: var(--r-sm);
-      background: #FFFFFF;
-      color: #713F12;
-      font-size: 12px;
-      font-weight: 650;
-    }
-    .state-switcher button[aria-pressed="true"] { background: #713F12; color: #FFFFFF; border-color: #713F12; }
-
     .app-shell {
       width: 100%;
       max-width: 100%;
-      height: calc(100vh - 52px);
-      height: calc(100dvh - 52px);
+      height: 100vh;
+      height: 100dvh;
       min-height: 0;
       display: grid;
       grid-template-columns: 268px minmax(0, 1fr);
@@ -714,11 +678,7 @@
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
     @media (max-width: 780px) {
-      .prototype-bar { padding: 8px 10px; }
-      .prototype-note { display: none; }
-      .state-switcher { width: 100%; margin-left: 0; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
-      .state-switcher button { white-space: nowrap; }
-      .app-shell { position: relative; height: calc(100vh - 93px); height: calc(100dvh - 93px); display: block; }
+      .app-shell { position: relative; height: 100vh; height: 100dvh; display: block; }
       .sidebar { position: absolute; inset: 0 auto 0 0; z-index: 30; width: 280px; border-right: 1px solid var(--line); box-shadow: var(--shadow); transform: translateX(-105%); transition: transform .22s ease; }
       .app-shell.drawer-open .sidebar { transform: translateX(0); }
       .scrim { position: absolute; inset: 0; z-index: 20; display: block; border: 0; background: rgba(23,23,23,.36); opacity: 0; pointer-events: none; transition: opacity .22s ease; }
@@ -790,21 +750,6 @@
     <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
   </svg>
-
-  <section class="prototype-bar" aria-label="Prototype state controls">
-    <span class="prototype-label">Khung thử</span>
-    <span class="prototype-note">Không thuộc UI thật — chuyển trạng thái để duyệt giao diện</span>
-    <div class="state-switcher" id="stateSwitcher">
-      <button type="button" data-state="empty" aria-pressed="true" data-vi="Rỗng" data-en="Empty">Rỗng</button>
-      <button type="button" data-state="loading" aria-pressed="false" data-vi="Loading" data-en="Loading">Loading</button>
-      <button type="button" data-state="streaming" aria-pressed="false" data-vi="Streaming" data-en="Streaming">Streaming</button>
-      <button type="button" data-state="answered" aria-pressed="false" data-vi="Hoàn tất" data-en="Complete">Hoàn tất</button>
-      <button type="button" data-state="insufficient" aria-pressed="false" data-vi="Thiếu bằng chứng" data-en="Insufficient">Thiếu bằng chứng</button>
-      <button type="button" data-state="fallback" aria-pressed="false" data-vi="PageIndex" data-en="PageIndex">PageIndex</button>
-      <button type="button" data-state="error" aria-pressed="false" data-vi="Lỗi" data-en="Error">Lỗi</button>
-      <button type="button" data-state="stopped" aria-pressed="false" data-vi="Đã dừng" data-en="Stopped">Đã dừng</button>
-    </div>
-  </section>
 
   <div class="app-shell" id="appShell" data-state="empty">
     <aside class="sidebar" aria-label="Thanh bên">
@@ -1105,7 +1050,6 @@
 
       var root = document.documentElement;
       var app = document.getElementById('appShell');
-      var stateSwitcher = document.getElementById('stateSwitcher');
       var input = document.getElementById('promptInput');
       var sendButton = document.getElementById('sendButton');
       var micButton = document.getElementById('micButton');
@@ -1171,9 +1115,6 @@
         document.querySelectorAll('[data-state-content]').forEach(function (block) {
           block.hidden = block.dataset.stateContent.split(/\s+/).indexOf(nextState) === -1;
         });
-        stateSwitcher.querySelectorAll('button').forEach(function (button) {
-          button.setAttribute('aria-pressed', String(button.dataset.state === nextState));
-        });
         document.querySelector('#headerStatus span:last-child').textContent = stateStatus[nextState][language === 'vi' ? 0 : 1];
         input.disabled = nextState === 'loading' || nextState === 'streaming';
         updatePrimaryAction();
@@ -1230,6 +1171,255 @@
         demoTimers.push(window.setTimeout(function () { setState('answered', { preserveTimers: true }); }, 3100));
       }
 
+      // =====================================================================
+      // TÍCH HỢP BACKEND THẬT — thay cho runDemoSequence() ở trên.
+      // Gọi POST /api/ask (server.py), nhận Server-Sent Events từ
+      // generate_with_citation_stream() (Task 10), render answer + sources thật.
+      // =====================================================================
+
+      var userTurnTemplate = document.querySelector('.turn-user').cloneNode(true);
+      var assistantTurnTemplate = document.querySelector('.assistant-turn').cloneNode(true);
+      assistantTurnTemplate.querySelectorAll('[id]').forEach(function (el) { el.removeAttribute('id'); });
+      assistantTurnTemplate.querySelectorAll('.sample-banner').forEach(function (el) { el.remove(); });
+
+      var activeAbortController = null;
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function formatAnswerHtml(text) {
+        var paras = String(text || '').split(/\n{2,}/).filter(Boolean);
+        if (!paras.length) return '';
+        return paras.map(function (para) {
+          return '<p>' + escapeHtml(para).replace(/\n/g, '<br>') + '</p>';
+        }).join('');
+      }
+
+      function sourceTypeLabel(type) {
+        if (type === 'legal') return language === 'vi' ? 'Chính sách/Quy định' : 'Policy/Regulation';
+        return language === 'vi' ? 'Thông tin/Thông báo' : 'Information/Announcement';
+      }
+
+      function buildSourcePanel(sources, route) {
+        var details = document.createElement('details');
+        details.className = 'source-panel';
+        details.open = true;
+        var count = sources.length;
+        var countLabel = language === 'vi' ? (count + ' nguồn') : (count + ' source' + (count === 1 ? '' : 's'));
+        var listHtml = sources.map(function (src, i) {
+          var meta = src.metadata || {};
+          var scoreText = typeof src.score === 'number' ? ('score ' + src.score.toFixed(3)) : '';
+          var noLinkLabel = language === 'vi' ? 'Chưa có liên kết trực tiếp' : 'No direct link available';
+          return '<article class="source-card">' +
+            '<span class="source-index">' + (i + 1) + '</span>' +
+            '<div class="source-copy"><strong>' + escapeHtml(meta.source || ('Source ' + (i + 1))) + '</strong>' +
+            '<div class="source-meta"><span class="source-type">' + sourceTypeLabel(meta.type) + '</span>' +
+            (scoreText ? '<span>' + scoreText + '</span>' : '') + '</div></div>' +
+            '<button class="source-open" type="button" disabled aria-label="' + noLinkLabel + '" title="' + noLinkLabel + '">' +
+            '<svg><use href="#i-file"/></svg></button></article>';
+        }).join('');
+        details.innerHTML =
+          '<summary><svg><use href="#i-file"/></svg>' +
+          '<span>' + (language === 'vi' ? 'Nguồn RMIT đã sử dụng' : 'RMIT sources used') + '</span>' +
+          '<span class="source-count">' + countLabel + '</span>' +
+          '<svg class="chevron"><use href="#i-chevron"/></svg></summary>' +
+          '<div class="source-list">' + listHtml + '</div>' +
+          '<details class="retrieval-details"><summary>' + (language === 'vi' ? 'Chi tiết truy xuất' : 'Retrieval details') + '</summary>' +
+          '<div class="retrieval-grid">' +
+          '<div class="metric"><span>Route</span><strong data-route>' + (route === 'pageindex' ? 'PageIndex' : 'Hybrid') + '</strong></div>' +
+          '<div class="metric"><span>Chunks</span><strong>' + count + '</strong></div>' +
+          '<div class="metric"><span>' + (language === 'vi' ? 'Ngôn ngữ' : 'Language') + '</span><strong data-current-language>' + language.toUpperCase() + '</strong></div>' +
+          '</div></details>';
+        return details;
+      }
+
+      function setTurnState(turnEl, state) {
+        turnEl.querySelectorAll('[data-state-content]').forEach(function (block) {
+          block.hidden = block.dataset.stateContent.split(/\s+/).indexOf(state) === -1;
+        });
+      }
+
+      function wireTurnControls(turnEl, query) {
+        if (turnEl.dataset.wired === 'true') return;
+        turnEl.dataset.wired = 'true';
+
+        var copyBtn = turnEl.querySelector('[data-copy-answer]');
+        if (copyBtn) copyBtn.addEventListener('click', function () {
+          var answerEl = turnEl.querySelector('[data-state-content~="answered"] .answer-copy');
+          var text = answerEl ? answerEl.innerText : '';
+          if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text);
+          showToast('Đã sao chép câu trả lời', 'Answer copied');
+        });
+        turnEl.querySelectorAll('[data-vote]').forEach(function (button) {
+          button.addEventListener('click', function () {
+            var shouldActivate = button.getAttribute('aria-pressed') !== 'true';
+            button.parentElement.querySelectorAll('[data-vote]').forEach(function (item) { item.setAttribute('aria-pressed', 'false'); });
+            button.setAttribute('aria-pressed', String(shouldActivate));
+            showToast(shouldActivate ? 'Đã ghi nhận phản hồi' : 'Đã bỏ phản hồi', shouldActivate ? 'Feedback recorded' : 'Feedback removed');
+          });
+        });
+        turnEl.querySelectorAll('[data-regenerate], .retry-btn').forEach(function (button) {
+          button.addEventListener('click', function () { askBackend(query, turnEl); });
+        });
+      }
+
+      function ensureConversationStarted() {
+        document.querySelector('[data-view="empty"]').hidden = true;
+        var view = document.querySelector('[data-view="conversation"]');
+        if (view.hidden) {
+          view.hidden = false;
+          view.innerHTML = ''; // bỏ turn mẫu tĩnh, hội thoại thật bắt đầu từ đây
+        }
+      }
+
+      function setComposerBusy(busy) {
+        currentState = busy ? 'streaming' : 'answered';
+        input.disabled = busy;
+        updatePrimaryAction();
+      }
+
+      function setHeaderStatus(stateKey) {
+        document.querySelector('#headerStatus span:last-child').textContent = stateStatus[stateKey][language === 'vi' ? 0 : 1];
+      }
+
+      function askBackend(query, existingTurnEl) {
+        query = (query || '').trim();
+        if (!query) return;
+        ensureConversationStarted();
+
+        var turnEl = existingTurnEl;
+        var conversationView = document.querySelector('[data-view="conversation"]');
+        if (!turnEl) {
+          conversationView.appendChild(userTurnTemplate.cloneNode(true));
+          turnEl = assistantTurnTemplate.cloneNode(true);
+          conversationView.appendChild(turnEl);
+        }
+        // Set text của bubble user vừa thêm (tìm bubble gần nhất trước turnEl)
+        var precedingUser = turnEl.previousElementSibling;
+        if (precedingUser && precedingUser.classList.contains('turn-user')) {
+          var bubble = precedingUser.querySelector('.user-bubble');
+          bubble.removeAttribute('data-vi'); bubble.removeAttribute('data-en'); bubble.removeAttribute('data-vi-html'); bubble.removeAttribute('data-en-html');
+          bubble.textContent = query;
+        }
+
+        input.value = '';
+        growInput();
+        setTurnState(turnEl, 'loading');
+        setComposerBusy(true);
+        setHeaderStatus('loading');
+        chatScroll.scrollTop = chatScroll.scrollHeight;
+
+        var streamingAnswerEl = turnEl.querySelector('[data-state-content~="streaming"] .answer-copy');
+        var accumulated = '';
+        var streamedAny = false;
+
+        activeAbortController = new AbortController();
+
+        function handleEvent(evt) {
+          if (evt.type === 'delta') {
+            if (!streamedAny) {
+              streamedAny = true;
+              setTurnState(turnEl, 'streaming');
+              setHeaderStatus('streaming');
+            }
+            accumulated += evt.content;
+            if (streamingAnswerEl) {
+              streamingAnswerEl.innerHTML = formatAnswerHtml(accumulated) + '<span class="stream-cursor" aria-hidden="true"></span>';
+            }
+            chatScroll.scrollTop = chatScroll.scrollHeight;
+          } else if (evt.type === 'done') {
+            finishTurn(evt);
+          } else if (evt.type === 'error') {
+            setTurnState(turnEl, 'error');
+            setHeaderStatus('error');
+            wireTurnControls(turnEl, query);
+            setComposerBusy(false);
+            activeAbortController = null;
+          }
+        }
+
+        function finishTurn(evt) {
+          var sources = evt.sources || [];
+          var answer = evt.answer || '';
+          var route = sources.length && sources[0].source === 'pageindex' ? 'pageindex' : 'hybrid';
+          var isInsufficient = !sources.length || /kh[oô]ng th[eể] x[aá]c minh|cannot verify/i.test(answer);
+          var finalState = isInsufficient ? 'insufficient' : (route === 'pageindex' ? 'fallback' : 'answered');
+
+          if (finalState === 'insufficient') {
+            var insufficientBlock = turnEl.querySelector('[data-state-content~="insufficient"]');
+            if (insufficientBlock) {
+              var p = insufficientBlock.querySelector('.answer-copy p');
+              if (p && answer) p.textContent = answer;
+              var oldPanel = insufficientBlock.querySelector('.source-panel');
+              if (oldPanel) oldPanel.remove();
+              if (sources.length) insufficientBlock.appendChild(buildSourcePanel(sources, route));
+            }
+          } else {
+            var finalBlock = turnEl.querySelector('[data-state-content~="answered"]');
+            if (finalBlock) {
+              var answerCopy = finalBlock.querySelector('.answer-copy');
+              if (answerCopy) answerCopy.innerHTML = formatAnswerHtml(answer);
+              var panelHolder = finalBlock.querySelector('.source-panel');
+              var newPanel = buildSourcePanel(sources, route);
+              if (panelHolder) panelHolder.replaceWith(newPanel); else finalBlock.insertBefore(newPanel, finalBlock.querySelector('.response-tools'));
+            }
+          }
+
+          setTurnState(turnEl, finalState);
+          setHeaderStatus(finalState === 'fallback' ? 'answered' : finalState);
+          wireTurnControls(turnEl, query);
+          setComposerBusy(false);
+          activeAbortController = null;
+          chatScroll.scrollTop = chatScroll.scrollHeight;
+        }
+
+        fetch('/api/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query, top_k: 5 }),
+          signal: activeAbortController.signal,
+        }).then(function (response) {
+          if (!response.ok || !response.body) throw new Error('HTTP ' + response.status);
+          var reader = response.body.getReader();
+          var decoder = new TextDecoder();
+          var buffer = '';
+
+          function pump() {
+            return reader.read().then(function (result) {
+              if (result.done) return;
+              buffer += decoder.decode(result.value, { stream: true });
+              var parts = buffer.split('\n\n');
+              buffer = parts.pop();
+              parts.forEach(function (part) {
+                var line = part.split('\n').filter(function (l) { return l.indexOf('data: ') === 0; })[0];
+                if (!line) return;
+                var evt;
+                try { evt = JSON.parse(line.slice(6)); } catch (e) { return; }
+                handleEvent(evt);
+              });
+              return pump();
+            });
+          }
+          return pump();
+        }).catch(function (err) {
+          activeAbortController = null;
+          if (err.name === 'AbortError') {
+            var stoppedEl = turnEl.querySelector('[data-state-content~="stopped"] .answer-copy');
+            if (stoppedEl) stoppedEl.innerHTML = formatAnswerHtml(accumulated);
+            setTurnState(turnEl, 'stopped');
+            setHeaderStatus('stopped');
+          } else {
+            setTurnState(turnEl, 'error');
+            setHeaderStatus('error');
+          }
+          wireTurnControls(turnEl, query);
+          setComposerBusy(false);
+        });
+      }
+
       function setSettingsTab(name) {
         document.querySelectorAll('[data-settings-tab]').forEach(function (tab) {
           tab.setAttribute('aria-selected', String(tab.dataset.settingsTab === name));
@@ -1254,10 +1444,6 @@
         modeTrigger.setAttribute('aria-expanded', 'false');
       }
 
-      stateSwitcher.addEventListener('click', function (event) {
-        var button = event.target.closest('button[data-state]');
-        if (button) setState(button.dataset.state);
-      });
       document.querySelector('.lang-switch').addEventListener('click', function (event) {
         var button = event.target.closest('button[data-lang]');
         if (button) applyLanguage(button.dataset.lang);
@@ -1317,12 +1503,14 @@
       input.addEventListener('keydown', function (event) {
         if (event.key === 'Enter' && !event.shiftKey) {
           event.preventDefault();
-          if (input.value.trim()) runDemoSequence();
+          if (input.value.trim()) askBackend(input.value);
         }
       });
       sendButton.addEventListener('click', function () {
-        if (currentState === 'loading' || currentState === 'streaming') setState('stopped');
-        else if (input.value.trim()) runDemoSequence();
+        if (currentState === 'loading' || currentState === 'streaming') {
+          if (activeAbortController) activeAbortController.abort();
+        }
+        else if (input.value.trim()) askBackend(input.value);
         else {
           var active = sendButton.getAttribute('aria-pressed') !== 'true';
           sendButton.setAttribute('aria-pressed', String(active));

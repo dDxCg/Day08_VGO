@@ -163,10 +163,16 @@ def retrieve(
             "Semantic best score (%.3f) < threshold (%.3f) -> falling back to PageIndex",
             best_score, score_threshold,
         )
-        fallback = pageindex_search(search_query, top_k=top_k)
-        logger.info("pageindex_search fallback -> %d results", len(fallback))
-        if fallback:
-            return fallback
+        try:
+            fallback = pageindex_search(search_query, top_k=top_k)
+            logger.info("pageindex_search fallback -> %d results", len(fallback))
+            if fallback:
+                return fallback
+        except Exception:
+            # PageIndex chưa cấu hình (chưa upload_documents()/thiếu PAGEINDEX_API_KEY)
+            # hoặc lỗi API — không để fallback lỗi làm sập cả pipeline, cứ trả về
+            # kết quả hybrid hiện có (dù dưới threshold) còn hơn không có gì.
+            logger.exception("pageindex_search fallback failed, returning hybrid results instead")
 
     logger.info("retrieve() done -> %d results", len(final_results[:top_k]))
     return final_results[:top_k]

@@ -184,11 +184,15 @@ def rerank(
     if method == "cross_encoder":
         return rerank_cross_encoder(query, candidates, top_k)
     elif method == "mmr":
-        # Cần query_embedding - embed query trước
-        raise NotImplementedError("Call rerank_mmr with query_embedding")
+        from .task4_chunking_indexing import embed_texts
+
+        query_embedding = embed_texts([query])[0]
+        return rerank_mmr(query_embedding, candidates, top_k)
     elif method == "rrf":
-        # RRF cần nhiều ranked lists - gọi riêng
-        raise NotImplementedError("Call rerank_rrf with ranked_lists")
+        # Gọi trực tiếp rerank() với 1 list đã có sẵn (vd. kết quả 1 ranker đơn) — coi
+        # đó là 1 ranked list duy nhất. Để merge NHIỀU ranked lists, gọi rerank_rrf()
+        # trực tiếp với list of lists (xem task9_retrieval_pipeline.py).
+        return rerank_rrf([candidates], top_k)
     else:
         raise ValueError(f"Unknown rerank method: {method}")
 
