@@ -114,7 +114,13 @@ def format_context(chunks: list[dict]) -> str:
 # GENERATION
 # =============================================================================
 
-def generate_with_citation(query: str, top_k: int = TOP_K) -> dict:
+def generate_with_citation(
+    query: str,
+    top_k: int = TOP_K,
+    retrieval_mode: str = "hybrid",  # "dense" | "hybrid" — A/B testing
+    use_reranking: bool = True,      # rerank on/off — A/B testing
+    rerank_method: str = "cross_encoder",  # "cross_encoder" | "mmr" — A/B testing
+) -> dict:
     """
     End-to-end RAG generation có citation.
 
@@ -128,16 +134,26 @@ def generate_with_citation(query: str, top_k: int = TOP_K) -> dict:
 
     Args:
         query: Câu hỏi của user
+        top_k: Số chunks đưa vào context
+        retrieval_mode: "dense" (chỉ semantic) hoặc "hybrid" (semantic + lexical + RRF)
+        use_reranking: Có rerank hay không (A/B: rerank vs no-rerank)
+        rerank_method: "cross_encoder" hoặc "mmr" (A/B giữa các reranking strategy)
 
     Returns:
         {
             'answer': str,           # Câu trả lời có citation
             'sources': list[dict],   # Các chunks đã dùng
-            'retrieval_source': str  # 'hybrid' hoặc 'pageindex'
+            'retrieval_source': str  # 'dense', 'hybrid' hoặc 'pageindex'
         }
     """
     # Step 1: Retrieve
-    chunks = retrieve(query, top_k=top_k)
+    chunks = retrieve(
+        query,
+        top_k=top_k,
+        use_reranking=use_reranking,
+        retrieval_mode=retrieval_mode,
+        rerank_method=rerank_method,
+    )
 
     if not chunks:
         return {

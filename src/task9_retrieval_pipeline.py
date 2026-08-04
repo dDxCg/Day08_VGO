@@ -50,6 +50,8 @@ def retrieve(
     top_k: int = DEFAULT_TOP_K,
     score_threshold: float = SCORE_THRESHOLD,
     use_reranking: bool = True,
+    retrieval_mode: str = "hybrid",  # "dense" | "hybrid" — for A/B testing (Task 10)
+    rerank_method: str = RERANK_METHOD,  # "cross_encoder" | "mmr" — for A/B testing (Task 10)
 ) -> list[dict]:
     """
     Retrieval pipeline hoàn chỉnh với fallback logic.
@@ -57,9 +59,9 @@ def retrieve(
     Pipeline:
         Query
           ├→ Semantic Search → dense_results (giữ điểm cosine gốc)
-          ├→ Lexical Search  → sparse_results
+          ├→ Lexical Search  → sparse_results (bỏ qua nếu retrieval_mode="dense")
           │
-          ├→ Merge (RRF) → merged_results
+          ├→ Merge (RRF, chỉ khi hybrid) → merged_results
           ├→ Rerank → reranked_results
           │
           └→ If dense_results[0]["score"] < threshold:
@@ -70,27 +72,39 @@ def retrieve(
         top_k: Số lượng kết quả cuối cùng
         score_threshold: Ngưỡng điểm cosine gốc tối thiểu (KHÔNG phải điểm RRF)
         use_reranking: Có áp dụng reranking hay không
+        retrieval_mode: "dense" (chỉ semantic_search) hoặc "hybrid" (semantic + lexical + RRF)
+        rerank_method: Method truyền cho rerank() khi use_reranking=True
 
     Returns:
         List of {
             'content': str,
             'score': float,
             'metadata': dict,
-            'source': str  # 'hybrid' hoặc 'pageindex'
+            'source': str  # 'dense', 'hybrid' hoặc 'pageindex'
         }
     """
-    # Step 1: Song song chạy semantic + lexical
-    dense_results = semantic_search(query, top_k=top_k * 2)
-    sparse_results = lexical_search(query, top_k=top_k * 2)
+    if retrieval_mode not in ("dense", "hybrid"):
+        raise ValueError(f"Unknown retrieval_mode: {retrieval_mode}")
 
-    # Step 2: Merge bằng RRF
-    merged = rerank_rrf([dense_results, sparse_results], top_k=top_k * 2)
-    for item in merged:
-        item["source"] = "hybrid"
+    # Step 1: Semantic search (luôn chạy — dùng cho fallback threshold + dense mode)
+    dense_results = semantic_search(query, top_k=top_k * 2)
+
+    if retrieval_mode == "dense":
+        merged = dense_results[:top_k * 2]
+        for item in merged:
+            item["source"] = "dense"
+    else:
+        # Step 2: Lexical search + merge bằng RRF
+        sparse_results = lexical_search(query, top_k=top_k * 2)
+        merged = rerank_rrf([dense_results, sparse_results], top_k=top_k * 2)
+        for item in merged:
+            item["source"] = "hybrid"
 
     # Step 3: Rerank
     if use_reranking and merged:
-        final_results = rerank(query, merged, top_k=top_k, method=RERANK_METHOD)
+        final_results = rerank(query, merged, top_k=top_k, method=rerank_method)
+        for item in final_results:
+            item.setdefault("source", merged[0]["source"])
     else:
         final_results = merged[:top_k]
 
