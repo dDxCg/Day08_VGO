@@ -135,10 +135,10 @@ flowchart TD
 
 | Thành viên | MSSV | Nhiệm vụ | Trạng thái |
 |-----------|------|----------|------------|
-| | | | |
-| | | | |
-| | | | |
-| | | | |
+|Lương Thanh Trang|2A202601363|task 10, UI|done|
+|Nguyễn Thanh Hoàn|2A202601201|evaluation|done|
+|Đỗ Tuấn Kiệt|2A202601335|task 1,2,3,4,5|done|
+|Đỗ Đức Cường|2A202601455|task 6,7,8,9|done|
 
 ---
 
