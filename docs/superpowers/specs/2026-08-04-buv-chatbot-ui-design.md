@@ -20,7 +20,7 @@ Hai câu hỏi giao diện phải trả lời được nhanh:
 
 ## 2. Mục tiêu của giai đoạn prototype
 
-Tạo một file HTML độc lập để duyệt bố cục, hình ảnh, nội dung và các trạng thái trước khi kết nối pipeline RAG.
+Tạo một prototype HTML mở trực tiếp bằng trình duyệt để duyệt bố cục, hình ảnh, nội dung và các trạng thái trước khi kết nối pipeline RAG. Prototype được phép dùng logo BUV cục bộ đã có trong `ui-design/image/`; không tải tài nguyên mạng.
 
 Prototype:
 
@@ -40,11 +40,13 @@ Phong cách là một cổng dịch vụ học thuật hiện đại: rõ ràng,
 
 - Màu nhấn chính: BUV Red `#D71F27`.
 - Chữ trên nền đỏ: `#FFFFFF`.
-- Nền chính trắng, sidebar xám rất nhạt, chữ đen và xám đậm.
+- Theme Sáng dùng nền trắng, sidebar xám rất nhạt, chữ đen và xám đậm.
+- Theme Tối dùng các token nền/chữ được đo tương phản riêng, không đảo màu tự động.
 - Không dùng gradient trang trí trong prototype đầu tiên.
 - Icon là SVG đơn sắc dùng `currentColor`; không dùng emoji nhiều màu làm icon chức năng.
 - Nút icon ở trạng thái active/primary dùng nền `#D71F27`, glyph trắng.
 - Trạng thái hệ thống luôn có icon và chữ, không truyền đạt chỉ bằng màu.
+- Sidebar dùng logo chính thức tại `ui-design/image/Logo ĐH Anh Quốc Việt Nam -BUV.png`, giữ nguyên tỉ lệ và không recolor.
 
 Font khai báo `Be Vietnam Pro`, sau đó fallback `Segoe UI`, `system-ui`, `sans-serif`. Prototype không tải font ngoài.
 
@@ -54,11 +56,12 @@ Font khai báo `Be Vietnam Pro`, sau đó fallback `Segoe UI`, `system-ui`, `san
 
 Sidebar theo mô hình ChatGPT, rộng khoảng 260px trên desktop:
 
-- Nhận diện BUV và tên chatbot.
+- Logo BUV chính thức và tên `BUV Assistant`; không hiện dòng phụ “Student Services Chatbot”.
 - Nút “Cuộc trò chuyện mới” / “New chat”.
 - Tìm kiếm lịch sử hội thoại.
 - Danh sách hội thoại mẫu theo thời gian.
 - Nút thu gọn sidebar.
+- Footer tài khoản gồm avatar tròn đỏ chữ `G`, tên `Guest` và nút mở Settings.
 
 Trên mobile, sidebar trở thành drawer có scrim và đóng được bằng phím Escape.
 
@@ -73,7 +76,33 @@ Header gọn, luôn nhìn thấy:
 
 Không hiển thị provider, model, API key hoặc thông tin kỹ thuật nội bộ trong prototype.
 
-### 4.3. Vùng hội thoại
+### 4.3. Settings
+
+Settings mở trong modal có ba tab, đóng được bằng nút đóng, click scrim hoặc phím Escape. Modal giữ focus trong hộp khi mở và trả focus về nút kích hoạt khi đóng.
+
+**Giao diện**
+
+- Chủ đề: `Sáng`, `Tối`, `Hệ thống`; đổi ngay, không tải lại.
+- Ngôn ngữ: đồng bộ với công tắc `VI / EN` trên header.
+- `Hiện chi tiết truy xuất mặc định`: mở sẵn khối route/chunks/ngôn ngữ dưới phần nguồn. Đây là bản phù hợp RAG, thay cho “Hiện log tool mặc định” của mẫu Research Agent.
+
+**Bộ nhớ giữa các phiên**
+
+- Bật/tắt Memory.
+- `Đã nhớ`: minh họa các sở thích phù hợp BUV như ngôn ngữ ưu tiên, cách trình bày câu trả lời và việc luôn hiện nguồn.
+- Nút `Quản lý`.
+- `Xoá toàn bộ Memory`, kèm mô tả không ảnh hưởng lịch sử hội thoại đã lưu.
+
+**Dữ liệu & quyền riêng tư**
+
+- Lưu hội thoại vào máy.
+- Ẩn dữ liệu nhạy cảm trong nhật ký chẩn đoán.
+- Hỏi trước khi thực hiện hành động bên ngoài chatbot hoặc gửi dữ liệu ra ngoài.
+- Xoá toàn bộ hội thoại, có cảnh báo không hoàn tác được.
+
+Theme và ngôn ngữ hoạt động thật trong prototype. Các toggle cần backend chỉ thay đổi trạng thái giao diện và hiện toast xác nhận; không được tuyên bố đã lưu dữ liệu thật.
+
+### 4.4. Vùng hội thoại
 
 - Nội dung giới hạn khoảng 820–880px để giữ độ dài dòng dễ đọc.
 - Tin nhắn người dùng căn phải, nền xám nhạt.
@@ -81,7 +110,7 @@ Không hiển thị provider, model, API key hoặc thông tin kỹ thuật nộ
 - Citation dạng `[1]`, `[2]` nằm sát khẳng định liên quan.
 - Khối nguồn BUV nằm ngay dưới phản hồi, không chuyển sang một trang hoặc panel xa ngữ cảnh.
 
-### 4.4. Composer
+### 4.5. Composer
 
 Composer cố định ở đáy vùng chat:
 
@@ -192,6 +221,10 @@ Các giá trị chưa tồn tại trong contract hiện tại không được t�
 - Nút câu hỏi mẫu điền composer.
 - Textarea tự giãn.
 - VI/EN toggle.
+- Mở/đóng Settings bằng nút ở footer tài khoản.
+- Chuyển Sáng/Tối/Hệ thống và phản ứng với thay đổi theme hệ điều hành khi đang ở chế độ Hệ thống.
+- Đồng bộ ngôn ngữ giữa header và Settings.
+- Bật/tắt các switch Settings ở mức prototype.
 - Thanh chuyển trạng thái prototype.
 - Mở/đóng khối nguồn và chi tiết truy xuất.
 - Sao chép phản hồi.
@@ -221,10 +254,12 @@ Giai đoạn prototype chỉ tạo:
 ```text
 Day08_VGO/
 └── ui-design/
-    └── prototype.html
+    ├── prototype.html
+    └── image/
+        └── Logo ĐH Anh Quốc Việt Nam -BUV.png
 ```
 
-File này tự chứa HTML, CSS, SVG icon, JavaScript và dữ liệu mẫu. Không dùng CDN hoặc tài nguyên mạng.
+HTML tự chứa CSS, SVG icon, JavaScript và dữ liệu mẫu; chỉ tham chiếu logo PNG cục bộ ở trên. Không dùng CDN hoặc tài nguyên mạng.
 
 Giai đoạn tích hợp Streamlit sau khi prototype được duyệt mới xem xét tách thành:
 
@@ -252,6 +287,12 @@ Prototype đạt khi:
 8. Không có emoji nhiều màu trong vai trò icon chức năng.
 9. Không có API key, `.env`, đường dẫn tuyệt đối, stack trace hoặc dữ liệu thật trên màn hình.
 10. Không có cuộn ngang ở 375px, 768px và 1440px.
+11. Logo BUV hiển thị đúng tỉ lệ; dòng “Student Services Chatbot” không còn xuất hiện.
+12. Footer sidebar hiển thị avatar `G`, tên `Guest` và mở được Settings.
+13. Modal Settings có đủ ba tab Giao diện, Bộ nhớ, Dữ liệu & quyền riêng tư.
+14. Sáng/Tối/Hệ thống đổi ngay; Hệ thống bám theo `prefers-color-scheme`.
+15. VI/EN trong Settings đồng bộ hai chiều với header.
+16. Các toggle prototype đổi trạng thái và không tuyên bố đã ghi dữ liệu thật.
 
 ## 13. Ngoài phạm vi
 
@@ -262,7 +303,7 @@ Giai đoạn này cố ý không làm:
 - Lưu lịch sử hội thoại thật.
 - Đăng nhập hoặc phân vai người dùng.
 - Voice input thật, upload file thật hoặc gửi feedback thật.
-- Dark mode.
+- Lưu thật các lựa chọn Settings, Memory hoặc transcript vào backend.
 - Tool log hoặc các trạng thái chỉ tồn tại ở agent tool-calling.
 - Dashboard evaluation và so sánh cấu hình RAG.
 
