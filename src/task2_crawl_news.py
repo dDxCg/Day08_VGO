@@ -29,17 +29,30 @@ def setup_directory():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# TODO: Điền danh sách URL bài viết cần crawl
 ARTICLE_URLS = [
-    # Ví dụ (trang công khai RMIT Vietnam):
-    # "https://www.rmit.edu.vn/libraryvn/...",
-    # "https://www.rmit.edu.vn/students/...",
+    # RMIT Vietnam — trang sự kiện (events)
+    "https://www.rmit.edu.vn/events/all-events/2026/higher-education-horizons-2026",
+    "https://www.rmit.edu.vn/news/all-news/2026/jul/moet-and-rmit-vietnam-promote-excellence-in-online-learning-design",
+    # RMIT Vietnam — dịch vụ thư viện (library news)
+    "https://www.rmit.edu.vn/libraryvn/about-us/news/2026/r-loop-event-recap",
+    "https://www.rmit.edu.vn/libraryvn/about-us/news/2025/10-years-book-swap",
+    "https://www.rmit.edu.vn/libraryvn/about-us/news/2025/rmit-vietnam-library-launches-adobe-express-champions",
+    "https://www.rmit.edu.vn/libraryvn/about-us/news/2025/library-welcomes-visitors-from-can-tho-university",
+    # RMIT Vietnam — hỗ trợ sinh viên (student support/news)
+    "https://www.rmit.edu.vn/news/all-news/2026/jul/rmit-student-finds-global-purpose-at-un-leadership-program",
 ]
+
+_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
 
 async def crawl_article(url: str) -> dict:
     """
     Crawl một bài viết và trả về dict chứa metadata + content.
+
+    Dùng requests + BeautifulSoup (thay vì Crawl4AI/Playwright) để tránh phải tải
+    Chromium binary (~300MB) — vẫn thoả yêu cầu output (url, title, date_crawled,
+    content_markdown). Nếu muốn dùng Crawl4AI, thay phần fetch bên dưới bằng
+    AsyncWebCrawler().arun(url) như gợi ý trong docstring gốc.
 
     Returns:
         {
@@ -49,18 +62,38 @@ async def crawl_article(url: str) -> dict:
             "content_markdown": str
         }
     """
-    from crawl4ai import AsyncWebCrawler
+    import requests
+    from bs4 import BeautifulSoup
 
-    # TODO: Implement crawling logic
-    # async with AsyncWebCrawler() as crawler:
-    #     result = await crawler.arun(url=url)
-    #     return {
-    #         "url": url,
-    #         "title": result.metadata.get("title", "Unknown"),
-    #         "date_crawled": datetime.now().isoformat(),
-    #         "content_markdown": result.markdown,
-    #     }
-    raise NotImplementedError("Implement crawl_article")
+    response = requests.get(url, headers=_HEADERS, timeout=20)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    for tag in soup(["script", "style", "nav", "footer", "header", "noscript"]):
+        tag.decompose()
+
+    title_tag = soup.find("h1") or soup.find("title")
+    title = title_tag.get_text(strip=True) if title_tag else "Unknown"
+
+    main = soup.find("main") or soup.find("article") or soup.body
+
+    lines = []
+    heading_map = {"h1": "#", "h2": "##", "h3": "###", "h4": "####"}
+    for el in main.find_all(["h1", "h2", "h3", "h4", "p", "li"]):
+        text = el.get_text(strip=True)
+        if not text:
+            continue
+        prefix = heading_map.get(el.name, "-" if el.name == "li" else "")
+        lines.append(f"{prefix} {text}".strip())
+
+    content_markdown = "\n\n".join(lines)
+
+    return {
+        "url": url,
+        "title": title,
+        "date_crawled": datetime.now().isoformat(),
+        "content_markdown": content_markdown,
+    }
 
 
 async def crawl_all():
@@ -74,7 +107,7 @@ async def crawl_all():
         # Lưu file JSON
         filename = f"article_{i:02d}.json"
         filepath = DATA_DIR / filename
-        filepath.write_text(json.dumps(article, ensure_ascii=False, indent=2))
+        filepath.write_text(json.dumps(article, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"  ✓ Saved: {filepath}")
 
 
