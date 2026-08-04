@@ -161,7 +161,7 @@ def _retrieve_and_build_prompt(
 
 def _get_openai_client():
     from openai import OpenAI
-    api_key = os.getenv("OPEN_ROUTER_API") or os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
     return OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
 
 

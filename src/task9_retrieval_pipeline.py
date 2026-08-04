@@ -59,7 +59,7 @@ def translate_to_english(query: str) -> str:
     """Dịch query sang tiếng Anh để match corpus (chroma_db toàn tiếng Anh)."""
     from openai import OpenAI
 
-    api_key = os.getenv("OPEN_ROUTER_API") or os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
     client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
 
     response = client.chat.completions.create(

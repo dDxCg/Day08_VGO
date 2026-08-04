@@ -66,7 +66,7 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
 EMBEDDING_DIM = 1024
 _IS_E5_MODEL = "e5-" in EMBEDDING_MODEL.lower()
 
-OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # ChromaDB: local persistent, không cần Docker, đủ nhanh cho quy mô corpus của bài lab.
@@ -131,7 +131,7 @@ def get_embedding_client():
     if _embedding_client is None:
         from openai import OpenAI
         if not OPENROUTER_API_KEY:
-            raise RuntimeError("OPEN_ROUTER_API not set in .env")
+            raise RuntimeError("OPENROUTER_API_KEY not set in .env")
         _embedding_client = OpenAI(api_key=OPENROUTER_API_KEY, base_url=OPENROUTER_BASE_URL)
     return _embedding_client
 

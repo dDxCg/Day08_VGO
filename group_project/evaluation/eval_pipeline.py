@@ -58,7 +58,7 @@ def _get_ragas_llm_embeddings():
     from ragas.embeddings import LangchainEmbeddingsWrapper
     from ragas.llms import LangchainLLMWrapper
 
-    api_key = os.getenv("OPEN_ROUTER_API")
+    api_key = os.getenv("OPENROUTER_API_KEY")
     base_url = "https://openrouter.ai/api/v1"
     chat_model = os.getenv("CHAT_MODEL", "openai/gpt-4o-mini")
     embedding_model = os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
