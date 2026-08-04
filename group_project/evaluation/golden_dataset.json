@@ -1,17 +1,122 @@
 [
   {
-    "question": "Học phí hàng năm của chương trình Business tại RMIT Vietnam là bao nhiêu?",
-    "expected_answer": "Khoảng 375.840.000 VND mỗi năm (tùy chương trình cụ thể).",
-    "expected_context": "Trang Tuition Fees, mục Undergraduate Programs"
+    "id": "fees_01",
+    "question": "Nghĩa vụ tài chính về học phí của sinh viên RMIT phát sinh khi nào và học phí được thu theo cách nào?",
+    "expected_answer": "Nghĩa vụ tài chính phát sinh tại thời điểm đăng ký môn học. Sinh viên Chuyển tiếp/Dự bị đại học, Đại học và Sau đại học được lập hóa đơn và đóng học phí theo từng học kỳ cho các môn đã đăng ký; sinh viên chương trình Tiếng Anh đóng theo từng khóa học.",
+    "expected_context": "2026 Student Fees & Charges Guide, mục 2.1 Creation of Financial Liability: nghĩa vụ phát sinh khi đăng ký; phí được lập hóa đơn theo học kỳ hoặc theo từng khóa Tiếng Anh.",
+    "source": "tuition-fees-and-charges-guide-rmit.md",
+    "category": "tuition"
   },
   {
-    "question": "Học phí được thanh toán theo hình thức nào?",
-    "expected_answer": "Thanh toán theo từng học kỳ, tính theo từng môn học đã đăng ký.",
-    "expected_context": "Trang Tuition Fees, mục Payment Structure"
+    "id": "fees_02",
+    "question": "Sinh viên phải làm gì để chấm dứt nghĩa vụ tài chính khi muốn rút môn hoặc thôi học?",
+    "expected_answer": "Sinh viên phải rút môn hoặc chương trình đúng hạn bằng OES hoặc nộp mẫu đơn được chấp thuận như Enrolment Variation, Leave of Absence hay Cancellation of Enrolment. Không hoàn tất thủ tục trước hạn phạt tài chính thì nghĩa vụ học phí vẫn còn.",
+    "expected_context": "2026 Student Fees & Charges Guide, mục 2.2 Cessation of Financial Liability: chỉ thủ tục rút môn chính thức và đúng hạn mới chấm dứt nghĩa vụ tài chính.",
+    "source": "tuition-fees-and-charges-guide-rmit.md",
+    "category": "tuition"
   },
   {
-    "question": "Trường có cung cấp ký túc xá trong khuôn viên không?",
-    "expected_answer": "Không — trường không cung cấp chỗ ở trong khuôn viên, nhưng có đội ngũ hỗ trợ sinh viên tìm chỗ ở gần trường.",
-    "expected_context": "Trang Accommodation Services"
+    "id": "fees_03",
+    "question": "Sinh viên học bổng có phải trả học phí nếu trượt môn hoặc rút môn sau Census Date không?",
+    "expected_answer": "Có. Nếu trượt môn hoặc rút môn sau Census Date mà không được công nhận hoàn cảnh đặc biệt, sinh viên học bổng phải chịu toàn bộ học phí của môn đó; hóa đơn được lập trong học kỳ xảy ra và phải thanh toán trước Payment Date của học kỳ kế tiếp.",
+    "expected_context": "2026 Student Fees & Charges Guide, mục 3.3 Scholarship Students: người nhận học bổng chịu toàn bộ phí môn trượt hoặc rút trễ nếu không có hoàn cảnh đặc biệt.",
+    "source": "tuition-fees-and-charges-guide-rmit.md",
+    "category": "scholarship"
+  },
+  {
+    "id": "fees_04",
+    "question": "Điều kiện và mức giảm của chính sách học phí dành cho gia đình sinh viên RMIT là gì?",
+    "expected_answer": "Sinh viên có thể được giảm 5% học phí nếu chứng minh có anh/chị/em, vợ/chồng, cha/mẹ hoặc con đang hoặc đã học tại RMIT Việt Nam. Hồ sơ chứng minh quan hệ phải nộp trước cuối ngày làm việc của thứ Sáu trước tuần đầu tiên của học kỳ.",
+    "expected_context": "2026 Student Fees & Charges Guide, mục 4.2 Family Tuition Fee Assistance: giảm 5%, quan hệ gia đình đủ điều kiện và hạn nộp hồ sơ.",
+    "source": "tuition-fees-and-charges-guide-rmit.md",
+    "category": "tuition_assistance"
+  },
+  {
+    "id": "fees_05",
+    "question": "Cựu sinh viên RMIT đã hoàn thành bằng cử nhân hoặc thạc sĩ được hỗ trợ học phí thế nào khi học thêm chương trình khác?",
+    "expected_answer": "Cựu sinh viên đã hoàn thành chương trình cử nhân hoặc thạc sĩ của RMIT có thể được giảm 10% học phí cho một chương trình Đại học hoặc Sau đại học khác tại RMIT Việt Nam, sau khi nộp hồ sơ hợp lệ đúng hạn.",
+    "expected_context": "2026 Student Fees & Charges Guide, mục 4.3 Alumni Tuition Fee Assistance: cựu sinh viên đủ điều kiện được giảm 10% học phí.",
+    "source": "tuition-fees-and-charges-guide-rmit.md",
+    "category": "tuition_assistance"
+  },
+  {
+    "id": "fees_06",
+    "question": "Phí hành chính khi đóng học phí trễ hạn tại RMIT Việt Nam là bao nhiêu?",
+    "expected_answer": "Sinh viên không thanh toán trước hoặc đúng Payment Date phải trả phí hành chính 200.000 đồng và có thể chịu thêm các biện pháp xử lý khác.",
+    "expected_context": "2026 Student Fees & Charges Guide, mục 6.7.6 Overdue Payment Fees: phí hành chính 200.000 đồng cho thanh toán sau hạn.",
+    "source": "tuition-fees-and-charges-guide-rmit.md",
+    "category": "tuition"
+  },
+  {
+    "id": "fees_07",
+    "question": "Payment Date thông thường, của khóa Block và của khóa PostGrad intensive được quy định khi nào?",
+    "expected_answer": "Thông thường Payment Date là thứ Sáu của tuần 3 trong học kỳ. Với khóa Block, hạn là thứ Sáu của tuần đầu tiên; với khóa PostGrad intensive, hạn là ngày trước ngày bắt đầu khóa học.",
+    "expected_context": "2026 Student Fees & Charges Guide, mục 15 Glossary: định nghĩa Payment Date và hai ngoại lệ cho Block và PostGrad intensive.",
+    "source": "tuition-fees-and-charges-guide-rmit.md",
+    "category": "tuition"
+  },
+  {
+    "id": "fees_08",
+    "question": "Sinh viên chương trình Tiếng Anh rút khóa trong ba ngày đầu được hoàn học phí thế nào?",
+    "expected_answer": "Sinh viên được hoàn 50% học phí, trừ phí hành chính, cho mỗi module đã thanh toán nhưng chưa tham gia; hoặc có thể giữ chỗ cho khóa khả dụng tiếp theo.",
+    "expected_context": "2026 Student Fees & Charges Guide, mục 12.2 Partial Refunds: rút trong ba ngày đầu được hoàn 50% trừ phí hành chính hoặc chuyển sang khóa tiếp theo.",
+    "source": "tuition-fees-and-charges-guide-rmit.md",
+    "category": "refund"
+  },
+  {
+    "id": "fees_09",
+    "question": "Sau Census Date, sinh viên gặp hoàn cảnh đặc biệt có thể xin hoàn hoặc bảo lưu học phí không?",
+    "expected_answer": "Có. Sinh viên rút sau Census Date hoặc không thể hoàn tất hay rút môn vì hoàn cảnh đặc biệt có thể xin hoàn hoặc ghi có học phí cho học kỳ sau, nhưng phải cung cấp tài liệu chứng minh được chấp thuận.",
+    "expected_context": "2026 Student Fees & Charges Guide, mục 13 Refund or Re-credit in Special Circumstances: cho phép nộp đơn sau Census Date với chứng cứ phù hợp.",
+    "source": "tuition-fees-and-charges-guide-rmit.md",
+    "category": "refund"
+  },
+  {
+    "id": "scholarship_01",
+    "question": "Học bổng RMIT dành cho sinh viên mới và sinh viên hiện tại có được hoãn không?",
+    "expected_answer": "Học bổng của sinh viên mới không được hoãn trừ khi thư mời học bổng quy định khác. Học bổng của sinh viên hiện tại có thể được hoãn một học kỳ, nhưng RMIT có quyền chấp nhận hoặc từ chối yêu cầu.",
+    "expected_context": "Scholarship Terms & Conditions, điều 4: quy định hoãn học bổng cho sinh viên mới và hiện tại.",
+    "source": "scholarship-terms-and-conditions-rmit.md",
+    "category": "scholarship"
+  },
+  {
+    "id": "scholarship_02",
+    "question": "Người nhận học bổng phải duy trì khối lượng học tập tối thiểu bao nhiêu tín chỉ mỗi học kỳ?",
+    "expected_answer": "Bậc đại học phải duy trì ít nhất 36 tín chỉ mỗi học kỳ; bậc sau đại học ít nhất 24 tín chỉ; riêng người nhận Opportunity Scholarship phải duy trì ít nhất 24 tín chỉ mỗi học kỳ.",
+    "expected_context": "Scholarship Terms & Conditions, điều 11: yêu cầu tải học toàn thời gian 36/24 tín chỉ và ngoại lệ Opportunity Scholarship.",
+    "source": "scholarship-terms-and-conditions-rmit.md",
+    "category": "scholarship"
+  },
+  {
+    "id": "scholarship_03",
+    "question": "Người nhận học bổng RMIT được đi trao đổi và bảo lưu tối đa bao lâu?",
+    "expected_answer": "Nếu thư mời không quy định khác, người nhận học bổng được trao đổi tối đa hai học kỳ tại đối tác của RMIT Việt Nam. Sau khi học bổng bắt đầu, họ có thể bảo lưu nhưng không quá hai học kỳ liên tiếp trong toàn chương trình.",
+    "expected_context": "Scholarship Terms & Conditions, điều 13-14: tối đa hai học kỳ trao đổi và hai học kỳ bảo lưu liên tiếp.",
+    "source": "scholarship-terms-and-conditions-rmit.md",
+    "category": "scholarship"
+  },
+  {
+    "id": "special_01",
+    "question": "Những trường hợp nào đủ điều kiện xin special consideration tại RMIT Việt Nam?",
+    "expected_answer": "Sinh viên có thể nộp đơn khi gặp hoàn cảnh y tế hoặc phi y tế bất ngờ, ngoài tầm kiểm soát, khiến họ không thể nộp hoặc tham dự bài đánh giá, hoặc ảnh hưởng đáng kể đến kết quả. Quy trình này không dành cho tình trạng sức khỏe hay khuyết tật dài hạn.",
+    "expected_context": "Application for Special Consideration, Section B Eligibility: hoàn cảnh bất ngờ ngoài kiểm soát ảnh hưởng đến bài đánh giá; loại trừ tình trạng dài hạn.",
+    "source": "application-for-special-consideration-rmit.md",
+    "category": "special_consideration"
+  },
+  {
+    "id": "special_02",
+    "question": "Hạn nộp đơn special consideration và hạn bổ sung tài liệu chứng minh là bao lâu?",
+    "expected_answer": "Đơn phải được nộp chậm nhất năm ngày làm việc sau ngày diễn ra hoặc hạn nộp bài đánh giá. Nếu chưa có tài liệu chứng minh, sinh viên vẫn phải nộp đơn đúng hạn và có tối đa năm ngày làm việc kể từ ngày nộp đơn để bổ sung tài liệu.",
+    "expected_context": "Application for Special Consideration, Section C Lodgement options: hai mốc năm ngày làm việc cho đơn và tài liệu bổ sung.",
+    "source": "application-for-special-consideration-rmit.md",
+    "category": "special_consideration"
+  },
+  {
+    "id": "special_03",
+    "question": "Sinh viên nộp đơn special consideration bằng cách nào và nhận kết quả ở đâu?",
+    "expected_answer": "Sinh viên có thể nộp qua Student Connect portal hoặc email assessment.support@rmit.edu.vn. Kết quả được gửi trong vòng 10 ngày làm việc tới tài khoản email sinh viên RMIT.",
+    "expected_context": "Application for Special Consideration, Section C: hai kênh nộp đơn và thông báo kết quả qua email RMIT trong 10 ngày làm việc.",
+    "source": "application-for-special-consideration-rmit.md",
+    "category": "special_consideration"
   }
 ]

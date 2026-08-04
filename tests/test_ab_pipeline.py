@@ -98,6 +98,11 @@ class TestABPipeline(unittest.TestCase):
 if __name__ == "__main__":
     import argparse
 
+    # Windows may default to cp1258, which cannot encode every Vietnamese
+    # character used in the A/B report even though the pipeline ran correctly.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(description="A/B test — retrieval + reranking pipeline")
     parser.add_argument("--top-k", type=int, default=TOP_K)
     args = parser.parse_args()

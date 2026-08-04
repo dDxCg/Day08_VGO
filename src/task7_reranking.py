@@ -184,8 +184,27 @@ def rerank(
     if method == "cross_encoder":
         return rerank_cross_encoder(query, candidates, top_k)
     elif method == "mmr":
-        # Cần query_embedding - embed query trước
-        raise NotImplementedError("Call rerank_mmr with query_embedding")
+        # Retrieval results from Chroma/BM25 do not carry embeddings.  Encode the
+        # query and candidates here so the public rerank() interface can actually
+        # run the MMR A/B configuration end-to-end.
+        from .task4_chunking_indexing import _IS_E5_MODEL, get_embedding_model
+
+        model = get_embedding_model()
+        query_text = f"query: {query}" if _IS_E5_MODEL else query
+        candidate_texts = [
+            f"passage: {item['content']}" if _IS_E5_MODEL else item["content"]
+            for item in candidates
+        ]
+        vectors = model.encode([query_text, *candidate_texts])
+        enriched = [
+            {**item, "embedding": vector.tolist()}
+            for item, vector in zip(candidates, vectors[1:])
+        ]
+        selected = rerank_mmr(vectors[0].tolist(), enriched, top_k=top_k)
+
+        # Embeddings are an internal detail and are large; do not leak them into
+        # generation responses or evaluation artifacts.
+        return [{key: value for key, value in item.items() if key != "embedding"} for item in selected]
     elif method == "rrf":
         # RRF cần nhiều ranked lists - gọi riêng
         raise NotImplementedError("Call rerank_rrf with ranked_lists")
