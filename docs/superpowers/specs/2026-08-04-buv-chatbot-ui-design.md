@@ -116,11 +116,16 @@ Composer cố định ở đáy vùng chat:
 
 - Nút đính kèm.
 - Textarea tự giãn.
-- Nút gửi.
+- Cụm hành động bên phải theo thứ tự: micro dictation, menu chế độ phản hồi `Instant`, nút hành động chính.
+- Khi textarea rỗng, nút hành động chính là nút Voice mode hình tròn màu đen. Icon bên trong gồm bốn vạch sóng bo tròn xếp dọc; hai vạch giữa dài hơn hai vạch ngoài.
+- Khi textarea có nội dung, nút Voice mode được thay tại chỗ bằng nút gửi màu đỏ BUV. Không hiện đồng thời hai nút để tránh làm composer chật.
+- Trong Loading/Streaming, cùng vị trí đó chuyển thành nút dừng.
 - Enter để gửi, Shift+Enter để xuống dòng.
 - Dòng lưu ý: câu trả lời cần được đối chiếu với nguồn chính thức của BUV.
 
 Trong Loading và Streaming, composer bị khóa. Nút gửi chuyển thành nút dừng phản hồi.
+
+Micro và Voice mode là hai chức năng khác nhau: micro dùng để chuyển lời nói thành văn bản trong textarea; Voice mode dùng cho hội thoại thoại liên tục. Prototype chỉ mô phỏng trạng thái nghe và menu, không truy cập microphone thật.
 
 ## 5. Màn hình rỗng
 
@@ -220,6 +225,9 @@ Các giá trị chưa tồn tại trong contract hiện tại không được t�
 - Chọn hội thoại mẫu.
 - Nút câu hỏi mẫu điền composer.
 - Textarea tự giãn.
+- Micro dictation mô phỏng trạng thái nghe/dừng nghe.
+- Menu `Instant` mở được và chọn được chế độ minh họa; lựa chọn chưa thay đổi backend.
+- Nút Voice mode bốn vạch xuất hiện khi textarea rỗng và chuyển thành nút gửi khi có chữ.
 - VI/EN toggle.
 - Mở/đóng Settings bằng nút ở footer tài khoản.
 - Chuyển Sáng/Tối/Hệ thống và phản ứng với thay đổi theme hệ điều hành khi đang ở chế độ Hệ thống.
@@ -293,6 +301,9 @@ Prototype đạt khi:
 14. Sáng/Tối/Hệ thống đổi ngay; Hệ thống bám theo `prefers-color-scheme`.
 15. VI/EN trong Settings đồng bộ hai chiều với header.
 16. Các toggle prototype đổi trạng thái và không tuyên bố đã ghi dữ liệu thật.
+17. Composer có micro, menu `Instant` và nút Voice mode tròn đen với bốn vạch sóng đúng hình dáng.
+18. Khi textarea có chữ, nút Voice mode được thay bằng nút gửi đỏ; khi xoá hết chữ, nút Voice mode trở lại.
+19. Micro, Voice mode và menu phản hồi có vùng bấm tối thiểu 44×44px, nhãn accessibility và trạng thái focus rõ.
 
 ## 13. Ngoài phạm vi
 
@@ -302,7 +313,7 @@ Giai đoạn này cố ý không làm:
 - Sửa và chạy retrieval/generation Task 9–10.
 - Lưu lịch sử hội thoại thật.
 - Đăng nhập hoặc phân vai người dùng.
-- Voice input thật, upload file thật hoặc gửi feedback thật.
+- Thu âm/nhận dạng giọng nói thật, hội thoại voice thật, upload file thật hoặc gửi feedback thật.
 - Lưu thật các lựa chọn Settings, Memory hoặc transcript vào backend.
 - Tool log hoặc các trạng thái chỉ tồn tại ở agent tool-calling.
 - Dashboard evaluation và so sánh cấu hình RAG.
