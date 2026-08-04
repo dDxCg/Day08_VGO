@@ -23,8 +23,8 @@ from rank_bm25 import BM25Okapi
 
 STANDARDIZED_DIR = Path(__file__).parent.parent / "data" / "standardized"
 
-CHUNK_SIZE = 500
-CHUNK_OVERLAP = 50
+CHUNK_SIZE = 800
+CHUNK_OVERLAP = 100
 
 CORPUS: list[dict] = []  # List of {'content': str, 'metadata': dict}
 _BM25: BM25Okapi | None = None

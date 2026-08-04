@@ -13,12 +13,15 @@ https://openrouter.ai/models?max_price=0 — phù hợp nếu chưa có credit t
 Base URL: "https://openrouter.ai/api/v1", dùng chung interface với OpenAI SDK.
 """
 
+import logging
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 from .task9_retrieval_pipeline import retrieve
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -114,6 +117,54 @@ def format_context(chunks: list[dict]) -> str:
 # GENERATION
 # =============================================================================
 
+def _retrieve_and_build_prompt(
+    query: str,
+    top_k: int,
+    retrieval_mode: str,
+    use_reranking: bool,
+    rerank_method: str,
+) -> tuple[list[dict], str]:
+    """Step 1-4 dùng chung cho cả generate_with_citation và bản streaming."""
+    logger.info(
+        "generate_with_citation() start | query=%r top_k=%d retrieval_mode=%s use_reranking=%s rerank_method=%s",
+        query, top_k, retrieval_mode, use_reranking, rerank_method,
+    )
+
+    # Step 1: Retrieve
+    chunks = retrieve(
+        query,
+        top_k=top_k,
+        use_reranking=use_reranking,
+        retrieval_mode=retrieval_mode,
+        rerank_method=rerank_method,
+    )
+    logger.info("retrieve() -> %d chunks", len(chunks))
+
+    if not chunks:
+        logger.warning("No chunks retrieved -> returning cannot-verify answer")
+        return chunks, ""
+
+    # Step 2: Reorder
+    reordered = reorder_for_llm(chunks)
+    logger.info("reorder_for_llm() -> %d chunks reordered (lost-in-the-middle mitigation)", len(reordered))
+
+    # Step 3: Format context
+    context = format_context(reordered)
+    logger.info("format_context() -> %d chars", len(context))
+
+    # Step 4: Build prompt
+    user_message = f"""Context:\n{context}\n\n---\n\nQuestion: {query}"""
+    logger.debug("Prompt built | system=%d chars user=%d chars", len(SYSTEM_PROMPT), len(user_message))
+
+    return chunks, user_message
+
+
+def _get_openai_client():
+    from openai import OpenAI
+    api_key = os.getenv("OPEN_ROUTER_API") or os.getenv("OPENAI_API_KEY")
+    return OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
+
+
 def generate_with_citation(
     query: str,
     top_k: int = TOP_K,
@@ -146,13 +197,8 @@ def generate_with_citation(
             'retrieval_source': str  # 'dense', 'hybrid' hoặc 'pageindex'
         }
     """
-    # Step 1: Retrieve
-    chunks = retrieve(
-        query,
-        top_k=top_k,
-        use_reranking=use_reranking,
-        retrieval_mode=retrieval_mode,
-        rerank_method=rerank_method,
+    chunks, user_message = _retrieve_and_build_prompt(
+        query, top_k, retrieval_mode, use_reranking, rerank_method
     )
 
     if not chunks:
@@ -162,20 +208,10 @@ def generate_with_citation(
             "retrieval_source": "none",
         }
 
-    # Step 2: Reorder
-    reordered = reorder_for_llm(chunks)
-
-    # Step 3: Format context
-    context = format_context(reordered)
-
-    # Step 4: Build prompt
-    user_message = f"""Context:\n{context}\n\n---\n\nQuestion: {query}"""
-
     # Step 5: Call LLM (OpenRouter — OpenAI-compatible API)
-    from openai import OpenAI
-    api_key = os.getenv("OPEN_ROUTER_API") or os.getenv("OPENAI_API_KEY")
-    client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
+    client = _get_openai_client()
 
+    logger.info("Calling LLM model=%s temperature=%.2f top_p=%.2f", LLM_MODEL, TEMPERATURE, TOP_P)
     response = client.chat.completions.create(
         model=LLM_MODEL,
         messages=[
@@ -187,12 +223,77 @@ def generate_with_citation(
     )
 
     answer = response.choices[0].message.content
+    logger.info("LLM response received -> %d chars", len(answer or ""))
 
     # Step 6: Return
+    retrieval_source = chunks[0].get("source", "hybrid") if chunks else "none"
+    logger.info("generate_with_citation() done | retrieval_source=%s sources=%d", retrieval_source, len(chunks))
     return {
         "answer": answer,
         "sources": chunks,
-        "retrieval_source": chunks[0].get("source", "hybrid") if chunks else "none"
+        "retrieval_source": retrieval_source,
+    }
+
+
+def generate_with_citation_stream(
+    query: str,
+    top_k: int = TOP_K,
+    retrieval_mode: str = "hybrid",
+    use_reranking: bool = True,
+    rerank_method: str = "cross_encoder",
+):
+    """
+    Bản streaming của generate_with_citation() — yield từng phần trả lời khi LLM sinh ra.
+
+    Retrieval (Step 1-4) vẫn chạy đồng bộ như bình thường (không stream được, cần
+    xong hết context mới gọi LLM). Chỉ Step 5 (LLM call) stream token-by-token.
+
+    Yields:
+        {'type': 'delta', 'content': str} — mỗi lần model sinh thêm text
+        {'type': 'done', 'sources': list[dict], 'retrieval_source': str, 'answer': str}
+            — event cuối cùng, chứa full answer + metadata
+    """
+    chunks, user_message = _retrieve_and_build_prompt(
+        query, top_k, retrieval_mode, use_reranking, rerank_method
+    )
+
+    if not chunks:
+        answer = "Tôi không thể xác minh thông tin này từ nguồn hiện có"
+        yield {"type": "delta", "content": answer}
+        yield {"type": "done", "sources": [], "retrieval_source": "none", "answer": answer}
+        return
+
+    client = _get_openai_client()
+
+    logger.info("Calling LLM (stream) model=%s temperature=%.2f top_p=%.2f", LLM_MODEL, TEMPERATURE, TOP_P)
+    stream = client.chat.completions.create(
+        model=LLM_MODEL,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_message}
+        ],
+        temperature=TEMPERATURE,
+        top_p=TOP_P,
+        stream=True,
+    )
+
+    answer_parts = []
+    for event in stream:
+        delta = event.choices[0].delta.content if event.choices else None
+        if delta:
+            answer_parts.append(delta)
+            yield {"type": "delta", "content": delta}
+
+    answer = "".join(answer_parts)
+    logger.info("LLM stream done -> %d chars", len(answer))
+
+    retrieval_source = chunks[0].get("source", "hybrid") if chunks else "none"
+    logger.info("generate_with_citation_stream() done | retrieval_source=%s sources=%d", retrieval_source, len(chunks))
+    yield {
+        "type": "done",
+        "sources": chunks,
+        "retrieval_source": retrieval_source,
+        "answer": answer,
     }
 
 

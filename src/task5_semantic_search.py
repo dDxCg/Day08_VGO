@@ -26,11 +26,10 @@ def semantic_search(query: str, top_k: int = 10) -> list[dict]:
         }
         Sorted by score descending.
     """
-    from .task4_chunking_indexing import _IS_E5_MODEL, get_collection, get_embedding_model
+    from .task4_chunking_indexing import _IS_E5_MODEL, embed_texts, get_collection
 
-    model = get_embedding_model()
     query_text = f"query: {query}" if _IS_E5_MODEL else query
-    query_vector = model.encode(query_text).tolist()
+    query_vector = embed_texts([query_text])[0]
 
     collection = get_collection()
     results = collection.query(

@@ -22,8 +22,11 @@ Vector store options:
     - Weaviate (hỗ trợ hybrid search built-in, cần Docker/Cloud)
     - FAISS (chỉ dense search)
 
+Embedding: gọi qua OpenRouter /embeddings API (OpenAI-compatible), model id đọc từ
+.env EMBEDDING_MODEL, key từ .env OPEN_ROUTER_API — không cần tải model local.
+
 Cài đặt:
-    pip install langchain-text-splitters sentence-transformers chromadb
+    pip install langchain-text-splitters openai chromadb
 
 Lưu ý quan trọng: nếu sau này đổi corpus (đổi chủ đề, thêm/bớt tài liệu), phải XÓA
 chroma_db/ cũ trước khi reindex — nếu không, chunk cũ và mới sẽ tồn tại lẫn lộn
@@ -54,14 +57,17 @@ CHUNK_SIZE = 800
 CHUNK_OVERLAP = 100
 CHUNKING_METHOD = "recursive"  # "recursive" | "markdown_header" | "semantic"
 
-# intfloat/multilingual-e5-large: multilingual, xử lý tốt cả tiếng Việt (nội dung news
-# RMIT có xen tiếng Việt) lẫn tiếng Anh (nội dung PDF chính sách), 1024 chiều.
-# Đọc từ .env (EMBEDDING_MODEL) để dễ đổi model mà không sửa code, fallback BAAI/bge-m3.
+# Embed qua OpenRouter /embeddings (OpenAI-compatible) thay vì tải model local —
+# tránh phải tải sentence-transformers model (vài GB) về máy. Đọc model id từ .env
+# (EMBEDDING_MODEL) để dễ đổi mà không sửa code.
 # Lưu ý: họ E5 (multilingual-e5-*) yêu cầu prefix "query: "/"passage: " trước text khi
 # encode để đạt chất lượng tốt nhất — xem embed_chunks() và task5_semantic_search.py.
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
 EMBEDDING_DIM = 1024
 _IS_E5_MODEL = "e5-" in EMBEDDING_MODEL.lower()
+
+OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # ChromaDB: local persistent, không cần Docker, đủ nhanh cho quy mô corpus của bài lab.
 VECTOR_STORE = "chromadb"  # "chromadb" | "weaviate" | "faiss"
@@ -115,17 +121,26 @@ def chunk_documents(documents: list[dict]) -> list[dict]:
     return chunks
 
 
-_embedding_model = None  # cache: tránh load lại model (chậm) mỗi lần gọi
+_embedding_client = None  # cache: tránh tạo lại OpenAI client mỗi lần gọi
 _chroma_client = None
 
 
-def get_embedding_model():
-    """Trả về SentenceTransformer instance dùng chung cho Task 4 (index) và Task 5 (query)."""
-    global _embedding_model
-    if _embedding_model is None:
-        from sentence_transformers import SentenceTransformer
-        _embedding_model = SentenceTransformer(EMBEDDING_MODEL)
-    return _embedding_model
+def get_embedding_client():
+    """Trả về OpenAI-compatible client (OpenRouter) dùng chung cho Task 4 (index) và Task 5 (query)."""
+    global _embedding_client
+    if _embedding_client is None:
+        from openai import OpenAI
+        if not OPENROUTER_API_KEY:
+            raise RuntimeError("OPEN_ROUTER_API not set in .env")
+        _embedding_client = OpenAI(api_key=OPENROUTER_API_KEY, base_url=OPENROUTER_BASE_URL)
+    return _embedding_client
+
+
+def embed_texts(texts: list[str]) -> list[list[float]]:
+    """Embed 1 batch text qua OpenRouter /embeddings. Dùng chung cho index (Task 4) và query (Task 5)."""
+    client = get_embedding_client()
+    response = client.embeddings.create(model=EMBEDDING_MODEL, input=texts)
+    return [item.embedding for item in response.data]
 
 
 def get_collection():
@@ -149,13 +164,12 @@ def embed_chunks(chunks: list[dict]) -> list[dict]:
     Returns:
         Mỗi chunk dict được thêm key 'embedding': list[float]
     """
-    model = get_embedding_model()
     texts = [c["content"] for c in chunks]
     if _IS_E5_MODEL:
         texts = [f"passage: {t}" for t in texts]
-    embeddings = model.encode(texts, show_progress_bar=True)
+    embeddings = embed_texts(texts)
     for chunk, emb in zip(chunks, embeddings):
-        chunk["embedding"] = emb.tolist()
+        chunk["embedding"] = emb
     return chunks
 
 

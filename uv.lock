@@ -792,6 +792,7 @@ dependencies = [
     { name = "chromadb" },
     { name = "crawl4ai" },
     { name = "datasets" },
+    { name = "fastapi" },
     { name = "fpdf2" },
     { name = "langchain-openai" },
     { name = "langchain-text-splitters" },
@@ -807,6 +808,7 @@ dependencies = [
     { name = "scikit-learn" },
     { name = "sentence-transformers" },
     { name = "streamlit" },
+    { name = "uvicorn", extra = ["standard"] },
 ]
 
 [package.metadata]
@@ -814,6 +816,7 @@ requires-dist = [
     { name = "chromadb", specifier = ">=0.5.0" },
     { name = "crawl4ai", specifier = ">=0.3.0" },
     { name = "datasets", specifier = ">=2.14.0" },
+    { name = "fastapi", specifier = ">=0.141.1" },
     { name = "fpdf2", specifier = ">=2.7.0" },
     { name = "langchain-openai", specifier = ">=0.1.0" },
     { name = "langchain-text-splitters", specifier = ">=0.2.0" },
@@ -829,6 +832,7 @@ requires-dist = [
     { name = "scikit-learn", specifier = ">=1.3.0" },
     { name = "sentence-transformers", specifier = ">=2.2.0" },
     { name = "streamlit", specifier = ">=1.35.0" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.52.1" },
 ]
 
 [[package]]
@@ -892,6 +896,22 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/41/43/948d10bf42735709edb5ae51e23297d034086f17fc7279fef385a7acb473/fake_useragent-2.2.0.tar.gz", hash = "sha256:4e6ab6571e40cc086d788523cf9e018f618d07f9050f822ff409a4dfe17c16b2", size = 158898, upload-time = "2025-04-14T15:32:19.238Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/51/37/b3ea9cd5558ff4cb51957caca2193981c6b0ff30bd0d2630ac62505d99d0/fake_useragent-2.2.0-py3-none-any.whl", hash = "sha256:67f35ca4d847b0d298187443aaf020413746e56acd985a611908c73dba2daa24", size = 161695, upload-time = "2025-04-14T15:32:17.732Z" },
+]
+
+[[package]]
+name = "fastapi"
+version = "0.141.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "annotated-doc" },
+    { name = "pydantic" },
+    { name = "starlette" },
+    { name = "typing-extensions" },
+    { name = "typing-inspection" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8a/02/91e3416a8fdd715abb903a952a6bec7cdd8d14eed55d415fc8595524c319/fastapi-0.141.1.tar.gz", hash = "sha256:e8822fc40db1e1858054d7a949a888695bc9bdce70139178e33bd2871a453ca1", size = 425799, upload-time = "2026-07-29T17:18:05.568Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cb/03/10388a42375ee7e4ac9b94eb2c5c569c8b5795e377e701c9ac3ad63de890/fastapi-0.141.1-py3-none-any.whl", hash = "sha256:bfb91aa2d334c61cb35ba9a116fc123b3d3df31640b801cf57a7a78ec3f603b3", size = 131954, upload-time = "2026-07-29T17:18:04.364Z" },
 ]
 
 [[package]]

@@ -24,11 +24,12 @@ có field "deprecation" cảnh báo) và trả kết quả trong "retrieved_node
 
 import json
 import os
+import textwrap
 import time
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fpdf import FPDF
+from fpdf import FPDF, XPos, YPos
 from pageindex.client import PageIndexClient
 
 load_dotenv()
@@ -52,7 +53,12 @@ def _md_to_pdf(md_file: Path) -> Path:
     pdf.set_font("Helvetica", size=11)
     text = md_file.read_text(encoding="utf-8")
     for line in text.splitlines():
-        pdf.multi_cell(0, 6, line.encode("latin-1", "replace").decode("latin-1"))
+        ascii_line = line.encode("latin-1", "replace").decode("latin-1")
+        # break_long_words: tránh token dài không có khoảng trắng (URL, table cell)
+        # làm multi_cell crash vì không đủ chỗ ngang để wrap.
+        wrapped = textwrap.wrap(ascii_line, width=100, break_long_words=True, break_on_hyphens=False) or [""]
+        for sub_line in wrapped:
+            pdf.multi_cell(0, 6, sub_line, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.output(str(pdf_path))
     return pdf_path
 
