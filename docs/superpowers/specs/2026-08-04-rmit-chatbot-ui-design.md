@@ -1,4 +1,4 @@
-# Thiết kế UI/UX — BUV Student Services Chatbot
+# Thiết kế UI/UX — RMIT Student Services Chatbot
 
 Ngày: 2026-08-04  
 Giai đoạn: Prototype tĩnh để duyệt giao diện  
@@ -6,7 +6,7 @@ Phạm vi triển khai sau khi duyệt: `Day08_VGO/ui-design/prototype.html`
 
 ## 1. Định vị sản phẩm
 
-Đây không phải chatbot tổng quát và không phải Research Agent. Đây là web chatbot song ngữ EN/VI, có trải nghiệm quen thuộc như ChatGPT nhưng chuyên trả lời thông tin BUV thuộc hai nhóm:
+Đây không phải chatbot tổng quát và không phải Research Agent. Đây là web chatbot song ngữ EN/VI, có trải nghiệm quen thuộc như ChatGPT nhưng chuyên trả lời thông tin RMIT thuộc hai nhóm:
 
 - Chính sách và quy định dịch vụ đại học: học phí, học bổng, ký túc xá, đăng ký học phần.
 - Thông tin và thông báo đại học: sự kiện, dịch vụ thư viện, hỗ trợ sinh viên.
@@ -15,12 +15,12 @@ Sản phẩm phục vụ chung sinh viên, phụ huynh và người đang cân n
 
 Hai câu hỏi giao diện phải trả lời được nhanh:
 
-1. Câu trả lời này dựa trên tài liệu BUV nào?
+1. Câu trả lời này dựa trên tài liệu RMIT nào?
 2. Thông tin đã được xác minh hay hệ thống chưa có đủ bằng chứng?
 
 ## 2. Mục tiêu của giai đoạn prototype
 
-Tạo một prototype HTML mở trực tiếp bằng trình duyệt để duyệt bố cục, hình ảnh, nội dung và các trạng thái trước khi kết nối pipeline RAG. Prototype được phép dùng logo BUV cục bộ đã có trong `ui-design/image/`; không tải tài nguyên mạng.
+Tạo một prototype HTML mở trực tiếp bằng trình duyệt để duyệt bố cục, hình ảnh, nội dung và các trạng thái trước khi kết nối pipeline RAG. Prototype được phép dùng logo RMIT cục bộ đã có trong `ui-design/image/`; không tải tài nguyên mạng.
 
 Prototype:
 
@@ -30,7 +30,7 @@ Prototype:
 - Không mô phỏng tool log vì backend hiện không phải agent tool-calling.
 - Mô phỏng trực quan luồng loading và streaming để duyệt trải nghiệm.
 
-Data thật, nguồn BUV và các file liên quan sẽ được tích hợp ở giai đoạn sau.
+Data thật, nguồn RMIT và các file liên quan sẽ được tích hợp ở giai đoạn sau.
 
 ## 3. Hướng thẩm mỹ
 
@@ -38,7 +38,7 @@ Phong cách là một cổng dịch vụ học thuật hiện đại: rõ ràng,
 
 Điểm nhận diện:
 
-- Màu nhấn chính: BUV Red `#D71F27`.
+- Màu nhấn chính: RMIT Red `#D71F27`.
 - Chữ trên nền đỏ: `#FFFFFF`.
 - Theme Sáng dùng nền trắng, sidebar xám rất nhạt, chữ đen và xám đậm.
 - Theme Tối dùng các token nền/chữ được đo tương phản riêng, không đảo màu tự động.
@@ -46,7 +46,7 @@ Phong cách là một cổng dịch vụ học thuật hiện đại: rõ ràng,
 - Icon là SVG đơn sắc dùng `currentColor`; không dùng emoji nhiều màu làm icon chức năng.
 - Nút icon ở trạng thái active/primary dùng nền `#D71F27`, glyph trắng.
 - Trạng thái hệ thống luôn có icon và chữ, không truyền đạt chỉ bằng màu.
-- Sidebar dùng logo chính thức tại `ui-design/image/Logo ĐH Anh Quốc Việt Nam -BUV.png`, giữ nguyên tỉ lệ và không recolor.
+- Sidebar dùng logo chính thức tại `ui-design/image/Logo ĐH RMIT-RMIT.png`, giữ nguyên tỉ lệ và không recolor. Logo luôn nằm trên surface trắng trung tính để wordmark tối đọc được ở cả theme Sáng và Tối.
 
 Font khai báo `Be Vietnam Pro`, sau đó fallback `Segoe UI`, `system-ui`, `sans-serif`. Prototype không tải font ngoài.
 
@@ -56,7 +56,7 @@ Font khai báo `Be Vietnam Pro`, sau đó fallback `Segoe UI`, `system-ui`, `san
 
 Sidebar theo mô hình ChatGPT, rộng khoảng 260px trên desktop:
 
-- Logo BUV chính thức và tên `BUV Assistant`; không hiện dòng phụ “Student Services Chatbot”.
+- Logo RMIT chính thức và tên `RMIT Assistant`; không hiện dòng phụ “Student Services Chatbot”.
 - Nút “Cuộc trò chuyện mới” / “New chat”.
 - Tìm kiếm lịch sử hội thoại.
 - Danh sách hội thoại mẫu theo thời gian.
@@ -69,7 +69,7 @@ Trên mobile, sidebar trở thành drawer có scrim và đóng được bằng p
 
 Header gọn, luôn nhìn thấy:
 
-- Tên `BUV Student Services Assistant`.
+- Tên `RMIT Student Services Assistant`.
 - Trạng thái sẵn sàng hoặc trạng thái lượt hiện tại.
 - Công tắc `VI / EN`.
 - Nút mở sidebar trên màn hình nhỏ.
@@ -89,7 +89,7 @@ Settings mở trong modal có ba tab, đóng được bằng nút đóng, click 
 **Bộ nhớ giữa các phiên**
 
 - Bật/tắt Memory.
-- `Đã nhớ`: minh họa các sở thích phù hợp BUV như ngôn ngữ ưu tiên, cách trình bày câu trả lời và việc luôn hiện nguồn.
+- `Đã nhớ`: minh họa các sở thích phù hợp RMIT như ngôn ngữ ưu tiên, cách trình bày câu trả lời và việc luôn hiện nguồn.
 - Nút `Quản lý`.
 - `Xoá toàn bộ Memory`, kèm mô tả không ảnh hưởng lịch sử hội thoại đã lưu.
 
@@ -108,7 +108,7 @@ Theme và ngôn ngữ hoạt động thật trong prototype. Các toggle cần b
 - Tin nhắn người dùng căn phải, nền xám nhạt.
 - Phản hồi của chatbot căn trái, không đặt trong card nặng.
 - Citation dạng `[1]`, `[2]` nằm sát khẳng định liên quan.
-- Khối nguồn BUV nằm ngay dưới phản hồi, không chuyển sang một trang hoặc panel xa ngữ cảnh.
+- Khối nguồn RMIT nằm ngay dưới phản hồi, không chuyển sang một trang hoặc panel xa ngữ cảnh.
 
 ### 4.5. Composer
 
@@ -118,10 +118,10 @@ Composer cố định ở đáy vùng chat:
 - Textarea tự giãn.
 - Cụm hành động bên phải theo thứ tự: micro dictation, menu chế độ phản hồi `Instant`, nút hành động chính.
 - Khi textarea rỗng, nút hành động chính là nút Voice mode hình tròn màu đen. Icon bên trong gồm bốn vạch sóng bo tròn xếp dọc; hai vạch giữa dài hơn hai vạch ngoài.
-- Khi textarea có nội dung, nút Voice mode được thay tại chỗ bằng nút gửi màu đỏ BUV. Không hiện đồng thời hai nút để tránh làm composer chật.
+- Khi textarea có nội dung, nút Voice mode được thay tại chỗ bằng nút gửi màu đỏ RMIT. Không hiện đồng thời hai nút để tránh làm composer chật.
 - Trong Loading/Streaming, cùng vị trí đó chuyển thành nút dừng.
 - Enter để gửi, Shift+Enter để xuống dòng.
-- Dòng lưu ý: câu trả lời cần được đối chiếu với nguồn chính thức của BUV.
+- Dòng lưu ý: câu trả lời cần được đối chiếu với nguồn chính thức của RMIT.
 
 Trong Loading và Streaming, composer bị khóa. Nút gửi chuyển thành nút dừng phản hồi.
 
@@ -131,8 +131,8 @@ Micro và Voice mode là hai chức năng khác nhau: micro dùng để chuyển
 
 Màn hình rỗng có ba tầng:
 
-1. Lời chào ngắn, mô tả chatbot chuyên về thông tin và dịch vụ BUV.
-2. Phạm vi hỗ trợ và giới hạn: chỉ trả lời dựa trên nguồn BUV đã được cung cấp.
+1. Lời chào ngắn, mô tả chatbot chuyên về thông tin và dịch vụ RMIT.
+2. Phạm vi hỗ trợ và giới hạn: chỉ trả lời dựa trên nguồn RMIT đã được cung cấp.
 3. Sáu câu hỏi mẫu: học phí, học bổng, ký túc xá, đăng ký học phần, thư viện và sự kiện.
 
 Câu hỏi mẫu chỉ điền nội dung vào composer để người dùng có thể sửa trước khi gửi.
@@ -148,7 +148,7 @@ Hiển thị lời chào, phạm vi và sáu câu hỏi mẫu.
 ### 6.2. Loading
 
 - Loader chuyển động nhẹ.
-- Nội dung: “Đang tìm trong tài liệu BUV…” / “Searching BUV documents…”.
+- Nội dung: “Đang tìm trong tài liệu RMIT…” / “Searching RMIT documents…”.
 - Giữ nguyên câu hỏi người dùng trên màn hình.
 - Composer khóa; nút gửi đổi thành nút dừng.
 - Không hiển thị tool log giả.
@@ -175,7 +175,7 @@ Streaming thật từ backend là phương án ưu tiên ở giai đoạn tích 
 
 - Không đoán câu trả lời.
 - Nêu rõ chưa thể xác minh từ nguồn hiện có.
-- Gợi ý kiểm tra trang chính thức hoặc kênh liên hệ phù hợp của BUV.
+- Gợi ý kiểm tra trang chính thức hoặc kênh liên hệ phù hợp của RMIT.
 - Vẫn hiển thị các nguồn đã truy xuất nếu có.
 
 ### 6.6. PageIndex fallback
@@ -197,9 +197,9 @@ Streaming thật từ backend là phương án ưu tiên ở giai đoạn tích 
 - Gắn nhãn “Đã dừng” / “Stopped”.
 - Cho phép tạo lại phản hồi.
 
-## 7. Khối nguồn BUV
+## 7. Khối nguồn RMIT
 
-Khối `Nguồn BUV đã sử dụng` / `BUV sources used` nằm ngay dưới phản hồi.
+Khối `Nguồn RMIT đã sử dụng` / `RMIT sources used` nằm ngay dưới phản hồi.
 
 Mỗi nguồn hiển thị:
 
@@ -264,7 +264,7 @@ Day08_VGO/
 └── ui-design/
     ├── prototype.html
     └── image/
-        └── Logo ĐH Anh Quốc Việt Nam -BUV.png
+        └── Logo ĐH RMIT-RMIT.png
 ```
 
 HTML tự chứa CSS, SVG icon, JavaScript và dữ liệu mẫu; chỉ tham chiếu logo PNG cục bộ ở trên. Không dùng CDN hoặc tài nguyên mạng.
@@ -295,7 +295,7 @@ Prototype đạt khi:
 8. Không có emoji nhiều màu trong vai trò icon chức năng.
 9. Không có API key, `.env`, đường dẫn tuyệt đối, stack trace hoặc dữ liệu thật trên màn hình.
 10. Không có cuộn ngang ở 375px, 768px và 1440px.
-11. Logo BUV hiển thị đúng tỉ lệ; dòng “Student Services Chatbot” không còn xuất hiện.
+11. Logo RMIT hiển thị đúng tỉ lệ; dòng “Student Services Chatbot” không còn xuất hiện.
 12. Footer sidebar hiển thị avatar `G`, tên `Guest` và mở được Settings.
 13. Modal Settings có đủ ba tab Giao diện, Bộ nhớ, Dữ liệu & quyền riêng tư.
 14. Sáng/Tối/Hệ thống đổi ngay; Hệ thống bám theo `prefers-color-scheme`.
@@ -309,7 +309,7 @@ Prototype đạt khi:
 
 Giai đoạn này cố ý không làm:
 
-- Kết nối data thật hoặc nguồn BUV thật.
+- Kết nối data thật hoặc nguồn RMIT thật.
 - Sửa và chạy retrieval/generation Task 9–10.
 - Lưu lịch sử hội thoại thật.
 - Đăng nhập hoặc phân vai người dùng.
