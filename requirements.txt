@@ -32,6 +32,13 @@ streamlit>=1.35.0
 ragas>=0.2.0
 datasets>=2.14.0
 langchain-openai>=0.1.0
+# Pin: ragas 0.4.x hard-imports langchain_community.chat_models.vertexai, a deprecated
+# shim removed in langchain-community>=0.4 — pin to last version that still has it.
+langchain-community==0.3.27
+
+# Group project - API backend
+fastapi>=0.141.1
+uvicorn[standard]>=0.52.1
 
 # Testing (dung de cham diem bai ca nhan)
 pytest>=7.0.0

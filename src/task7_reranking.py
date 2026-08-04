@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 RERANK_MODEL = os.getenv("RERANK_MODEL", "voyageai/rerank-2.5-lite")
 OPENROUTER_RERANK_URL = "https://openrouter.ai/api/v1/rerank"
 
@@ -42,7 +42,7 @@ def rerank_cross_encoder(
         List of top_k candidates, re-scored và sorted by rerank_score descending.
     """
     if not OPENROUTER_API_KEY:
-        raise RuntimeError("OPEN_ROUTER_API not set in .env")
+        raise RuntimeError("OPENROUTER_API_KEY not set in .env")
     if not candidates:
         return []
 
